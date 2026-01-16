@@ -13,6 +13,10 @@
 #ifndef HUNTECH26A2_H_
 #define HUNTECH26A2_H_
 #include "wet2util.h"
+#include "HASH_TABLE.h"
+#include "AVL_TREE.h"
+#include "Union_Find.h"
+#include <memory>
 
 
 class Huntech {
@@ -20,6 +24,9 @@ private:
     //
     // Here you may add anything you need to implement your Huntech class
     //
+    HashTable hunters;
+    AVLTree<int, std::unique_ptr<Squad>> squads;
+
 
 public:
     // <DO-NOT-MODIFY> {
