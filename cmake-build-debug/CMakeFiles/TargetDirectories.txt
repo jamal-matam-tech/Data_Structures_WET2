@@ -1,0 +1,3 @@
+C:/Users/Lenovo Legion/Desktop/Data Structures 1/WET2/cmake-build-debug/CMakeFiles/WET2.dir
+C:/Users/Lenovo Legion/Desktop/Data Structures 1/WET2/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Lenovo Legion/Desktop/Data Structures 1/WET2/cmake-build-debug/CMakeFiles/rebuild_cache.dir
