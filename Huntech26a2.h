@@ -24,6 +24,7 @@ private:
     //
     // Here you may add anything you need to implement your Huntech class
     //
+    // notice HashTable makes its own elements that are sharedptrs
     HashTable hunters;
     AVLTree<int, std::unique_ptr<Squad>> squads;
 
