@@ -43,7 +43,22 @@ output_t<int> Huntech::squad_duel(int squadId1, int squadId2) {
 }
 
 output_t<int> Huntech::get_hunter_fights_number(int hunterId) {
+  if (hunterId <= 0)
+        return output_t<int>(StatusType::INVALID_INPUT);
+  auto hunterPtr = hunters.find(hunterId);
+    if (!hunterPtr)
+		return output_t<int>(StatusType::FAILURE);
+    try {
+        // do path compression to hold the O(Log*n) amoritized complexity
+        UnionFind::find(hunterPtr->ufNode);
+
+        return output_t<int>(hunterPtr->fightsHad);
+    } catch (std::bad_alloc&) {
+        return output_t<int>(StatusType::ALLOCATION_ERROR);
+    }
+
     return 0;
+
 }
 
 output_t<int> Huntech::get_squad_experience(int squadId) {
@@ -55,6 +70,11 @@ output_t<int> Huntech::get_ith_collective_aura_squad(int i) {
 }
 
 output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
+  if (hunterId <= 0)
+        return output_t<NenAbility>(StatusType::INVALID_INPUT);
+  auto hunterPtr = hunters.find(hunterId);
+    if (!hunterPtr)
+		return output_t<NenAbility>(StatusType::FAILURE);
     return NenAbility();
 }
 
