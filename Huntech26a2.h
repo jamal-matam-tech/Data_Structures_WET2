@@ -21,16 +21,18 @@
 
 class Huntech {
 private:
-    //
-    // Here you may add anything you need to implement your Huntech class
-    //
-    // notice HashTable makes its own elements that are sharedptrs
+    
     HashTable hunters;
     AVLTree<int, std::unique_ptr<Squad>> squads;
+    
+    
+    int* hunterChronology;    
+    int chronologyCount;     
+    int chronologyCapacity;   // check after *******************************************************************
 
 
 public:
-    // <DO-NOT-MODIFY> {
+
 
     Huntech();
     virtual ~Huntech();
@@ -57,7 +59,6 @@ public:
 
     StatusType force_join(int forcingSquadId, int forcedSquadId);
 
-    // } </DO-NOT-MODIFY>
 };
 
 #endif // HUNTECH26A2_H_

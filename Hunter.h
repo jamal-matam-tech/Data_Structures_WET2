@@ -13,16 +13,16 @@ class Hunter{
   NenAbility nenAbility;
   int aura;
   int fightsHad;
-  std::shared_ptr<UFNode> ufNode; // pointer to the hunter's node in
-  // the inverted tree that is used by the squad that the hunter is in
+  int chronologicalIndex; // Index when this hunter was added (for partial nen ability)
+  std::shared_ptr<UFNode> ufNode; 
 
   Hunter(int hunterId, int squadId, const NenAbility& nenAbility, int aura,
       int fightsHad) : hunterId(hunterId), squadId(squadId),
     nenAbility(nenAbility), aura(aura),
-  fightsHad(fightsHad),  ufNode(nullptr){};
+  fightsHad(fightsHad), chronologicalIndex(-1), ufNode(nullptr){};
   ~Hunter() = default;
 
 
 };
 
-#endif //HUNTER_H
+#endif 

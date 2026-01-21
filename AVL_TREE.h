@@ -22,8 +22,8 @@ private:
         Node* parent;
         int height;
 
-        Node(const Key& k, const Value& v)
-          : key(k), value(v),
+        Node(const Key& k, Value&& v)
+          : key(k), value(std::move(v)),
             left(nullptr), right(nullptr), parent(nullptr),
             height(0) {}
     };
@@ -157,10 +157,10 @@ private:
       return current;
     }
 
-  Node* insert(Node* n, const Key& key, const Value& info) {
+  Node* insert(Node* n, const Key& key, Value&& info) {
       if (n == nullptr) {
         size++;
-        Node* back= new Node(key, info);
+        Node* back= new Node(key, std::move(info));
         return back;
       }
 
@@ -170,13 +170,13 @@ private:
       Node* Left=n->left;
       Node* Right=n->right;
       if (key < n->key) {
-        Left = insert(Left, key, info);
+        Left = insert(Left, key, std::move(info));
         n->left=Left;
         if (Left!= nullptr){
           Left->parent = n;
         }
       } else {
-        Right = insert(Right, key, info);
+        Right = insert(Right, key, std::move(info));
         n->right=Right;
         if (Right!= nullptr){
           Right->parent = n;
@@ -239,7 +239,7 @@ private:
         else { // both children exist
           Node* successor = minValueNode(n->right);
           n->key = successor->key;
-          n->value = successor->value;
+          n->value = std::move(successor->value);
 
           n->right = remove(n->right, successor->key);
           if (n->right) n->right->parent = n;
@@ -278,8 +278,8 @@ private:
         root = nullptr;
         size = 0;
       }
-      Node* insert(const Key& k, const Value& v) {
-        root = insert(root,k,v);
+      Node* insert(const Key& k, Value&& v) {
+        root = insert(root,k, std::move(v));
         if(root){ root->parent=nullptr ;}
         return root;
       }
@@ -302,6 +302,20 @@ private:
       }
       int getSize() const{ return size; }
       bool isEmpty() const{return root == nullptr;}
+      
+      template<typename Func>
+      void inOrderTraverse(Func func) {
+          inOrderHelper(root, func);
+      }
+
+private:
+      template<typename Func>
+      void inOrderHelper(Node* node, Func func) {
+          if (!node) return;
+          inOrderHelper(node->left, func);
+          func(node->key, &node->value);
+          inOrderHelper(node->right, func);
+      }
 
 };
 
