@@ -140,36 +140,51 @@ output_t<int> Huntech::squad_duel(int squadId1, int squadId2) {
         root1->getSquad()->incrementFights();
         root2->getSquad()->incrementFights();
 
+        int result = 0; // Default is draw
+
+        // Determine the winner by effectiveness
         if (effectiveness1 > effectiveness2) {
             squad1->updateExp(squad1->getSquadExp() + 3);
-            return output_t<int>(1); // Squad 1 wins by effectiveness
+            result = 1;  // Squad 1 wins by effectiveness
         } else if (effectiveness1 < effectiveness2) {
             squad2->updateExp(squad2->getSquadExp() + 3);
-            return output_t<int>(3); // Squad 2 wins by effectiveness
+            result = 3;  // Squad 2 wins by effectiveness
+        } else {
+            // Effectiveness equal, compare Nen
+            NenAbility nen1 = squad1->getNenAbility();
+            NenAbility nen2 = squad2->getNenAbility();
+
+            if (nen1 > nen2) {
+                squad1->updateExp(squad1->getSquadExp() + 3);
+                result = 2;  // Squad 1 wins by Nen
+            } else if (nen1 < nen2) {
+                squad2->updateExp(squad2->getSquadExp() + 3);
+                result = 4;  // Squad 2 wins by Nen
+            } else {
+                squad1->updateExp(squad1->getSquadExp() + 1);
+                squad2->updateExp(squad2->getSquadExp() + 1);
+                result = 0;  // Draw
+            }
         }
 
-        // Effectiveness equal, check nen
-        NenAbility nen1 = squad1->getNenAbility();
-        NenAbility nen2 = squad2->getNenAbility();
-
-        if (nen1 > nen2) {
-            squad1->updateExp(squad1->getSquadExp() + 3);
-            return output_t<int>(2); // Squad 1 wins by Nen
-        } else if (nen1 < nen2) {
-            squad2->updateExp(squad2->getSquadExp() + 3);
-            return output_t<int>(4); // Squad 2 wins by Nen
+        // Remove the losing squad from both AVL trees
+        if (result == 1 || result == 2) {
+            // Squad 1 wins
+            squads.remove(squadId2);
+            squadsByAura.remove(AuraKey(squad2->getTotalAura(), squadId2));
+        } else if (result == 3 || result == 4) {
+            // Squad 2 wins
+            squads.remove(squadId1);
+            squadsByAura.remove(AuraKey(squad1->getTotalAura(), squadId1));
         }
 
-        // Effectiveness and Nen equal -> Draw
-        squad1->updateExp(squad1->getSquadExp() + 1);
-        squad2->updateExp(squad2->getSquadExp() + 1);
-
-        return output_t<int>(0); // Draw
+        return output_t<int>(result);  // Return the duel result
 
     } catch (const std::bad_alloc&) {
         return output_t<int>(StatusType::ALLOCATION_ERROR);
     }
 }
+
 
 output_t<int> Huntech::get_hunter_fights_number(int hunterId) {
   if (hunterId <= 0)
@@ -242,7 +257,8 @@ output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
   if (hunterId <= 0)
         return output_t<NenAbility>(StatusType::INVALID_INPUT);
   auto hunterPtr = hunters.find(hunterId);
-    if (!hunterPtr)
+  UFNode* root = hunterPtr->ufNode->find();
+    if (!hunterPtr || root->getSquad() == nullptr)
 		return output_t<NenAbility>(StatusType::FAILURE);
     
     try {
@@ -298,6 +314,9 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
         if (forcingEff <= forcedEff) {
             return StatusType::FAILURE;
         }
+         // Remove forced squad from AVL trees since it is now inactive
+    	squads.remove(forcedSquadId);  // Remove from squad ID AVL
+    	squadsByAura.remove(AuraKey(forced->getTotalAura(), forcedSquadId));
 
         // Remove both squads from aura ranking
         squadsByAura.remove(AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()));
