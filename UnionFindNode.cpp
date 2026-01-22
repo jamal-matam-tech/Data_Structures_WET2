@@ -9,7 +9,8 @@ UFNode::UFNode(Squad* squadPtr)
       squad(squadPtr),
       partialNenAbility(NenAbility::zero()),
       delta(NenAbility::zero()),
-      totalNen(NenAbility::zero())
+      totalNen(NenAbility::zero()),
+      fightsDelta(0)
 {
 }
 
@@ -25,9 +26,9 @@ UFNode* UFNode::find() {
     // Recursively find root and compress path
     UFNode* root = oldParent->find();
     
-    // Accumulate: add old parent's delta to ours
-    // After parent->find(), oldParent's delta is relative to root
+    // Accumulate deltas (both nen and fights)
     delta = delta + oldParent->delta;
+    fightsDelta = fightsDelta + oldParent->fightsDelta;
     
     // Point directly to root
     parent = root;
@@ -103,4 +104,12 @@ NenAbility UFNode::getTotalNen() const {
 
 void UFNode::setTotalNen(const NenAbility& t) {
     totalNen = t;
+}
+
+int UFNode::getFightsDelta() const {
+    return fightsDelta;
+}
+
+void UFNode::setFightsDelta(int f) {
+    fightsDelta = f;
 }

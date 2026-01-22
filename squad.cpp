@@ -10,6 +10,7 @@ Squad::Squad(int id)
       ufNode(nullptr),
       squadSize(0),
       squadExp(0),
+      totalFights(0),
       totalNenAbility(NenAbility::zero())
 {
     ufNode = new UFNode(this);
@@ -36,6 +37,10 @@ int Squad::getSquadSize() const {
 
 int Squad::getSquadExp() const {
     return squadExp;
+}
+
+int Squad::getTotalFights() const {
+    return totalFights;
 }
 
 UFNode* Squad::getUFNode() const {
@@ -68,6 +73,10 @@ void Squad::decrementSize() {
 
 void Squad::updateExp(int exp) {
     squadExp = exp;
+}
+
+void Squad::incrementFights() {
+    totalFights++;
 }
 
 void Squad::setUFNode(UFNode* node) {

@@ -23,7 +23,7 @@ StatusType Huntech::add_squad(int squadId) {
     try {
         auto squadPtr = std::make_shared<Squad>(squadId);
         squads.insert(squadId, squadPtr);
-        squadsByAura.insert(AuraKey(0, squadId), squadPtr);  // Initial aura is 0
+        squadsByAura.insert(AuraKey(0, squadId), squadPtr);  
     } catch (const std::bad_alloc&) {
         return StatusType::ALLOCATION_ERROR;
     }
@@ -46,6 +46,9 @@ StatusType Huntech::remove_squad(int squadId) {
     }
     
     try {
+        
+        AuraKey auraKey((*squad_ptr)->getTotalAura(), squadId);
+        squadsByAura.remove(auraKey);
         squads.remove(squadId);
     } catch (const std::bad_alloc&) {
         return StatusType::ALLOCATION_ERROR;
@@ -83,6 +86,9 @@ StatusType Huntech::add_hunter(int hunterId,
   
   // Set hunter's delta to current totalNen of the squad
   hunter->ufNode.get()->setDelta(squadRoot->getTotalNen());
+  
+  // Set hunter's fightsDelta so they don't get past fights
+  hunter->ufNode.get()->setFightsDelta(-(squadRoot->getSquad()->getTotalFights()));
   
   // Hunter's parent is the squad root
   hunter->ufNode.get()->setParent(squadRoot);
@@ -127,32 +133,41 @@ output_t<int> Huntech::squad_duel(int squadId1, int squadId2) {
         int effectiveness1 = squad1->getSquadExp() + squad1->getTotalAura();
         int effectiveness2 = squad2->getSquadExp() + squad2->getTotalAura();
         
+        int winnerId = 0;
+        
         if (effectiveness1 > effectiveness2) {
-            return output_t<int>(squadId1);
+            winnerId = squadId1;
         } else if (effectiveness1 < effectiveness2) {
-            return output_t<int>(squadId2);
-        }
-        
-        NenAbility nen1 = squad1->getNenAbility();
-        NenAbility nen2 = squad2->getNenAbility();
-        
-        if (nen1 > nen2) {
-            return output_t<int>(squadId1);
-        } else if (nen1 < nen2) {
-            return output_t<int>(squadId2);
-        }
-        
-        if (squad1->getSquadSize() > squad2->getSquadSize()) {
-            return output_t<int>(squadId1);
-        } else if (squad1->getSquadSize() < squad2->getSquadSize()) {
-            return output_t<int>(squadId2);
-        }
-        
-        if (squadId1 < squadId2) {
-            return output_t<int>(squadId1);
+            winnerId = squadId2;
         } else {
-            return output_t<int>(squadId2);
+            // Effectiveness equal, check nen
+            NenAbility nen1 = squad1->getNenAbility();
+            NenAbility nen2 = squad2->getNenAbility();
+            
+            if (nen1 > nen2) {
+                winnerId = squadId1;
+            } else if (nen1 < nen2) {
+                winnerId = squadId2;
+            } else {
+                // Nen equal, check size
+                if (squad1->getSquadSize() > squad2->getSquadSize()) {
+                    winnerId = squadId1;
+                } else if (squad1->getSquadSize() < squad2->getSquadSize()) {
+                    winnerId = squadId2;
+                } else {
+                    // Size equal, check ID
+                    winnerId = (squadId1 < squadId2) ? squadId1 : squadId2;
+                }
+            }
         }
+        
+        // Increment fights for both squads' roots
+        UFNode* root1 = squad1->getUFNode()->find();
+        UFNode* root2 = squad2->getUFNode()->find();
+        root1->getSquad()->incrementFights();
+        root2->getSquad()->incrementFights();
+        
+        return output_t<int>(winnerId);
         
     } catch (std::bad_alloc&) {
         return output_t<int>(StatusType::ALLOCATION_ERROR);
@@ -166,10 +181,15 @@ output_t<int> Huntech::get_hunter_fights_number(int hunterId) {
     if (!hunterPtr)
 		return output_t<int>(StatusType::FAILURE);
     try {
-        // Trigger path compression - O(log* n)
-        hunterPtr->ufNode->find();
-
-        return output_t<int>(hunterPtr->fightsHad);
+        // Trigger path compression - accumulates fightsDelta
+        UFNode* root = hunterPtr->ufNode->find();
+        
+        // Formula: baseFights + sum(fightsDelta along path) + root.totalFights
+        int totalFights = hunterPtr->fightsHad + 
+                         hunterPtr->ufNode->getFightsDelta() + 
+                         root->getSquad()->getTotalFights();
+        
+        return output_t<int>(totalFights);
     } catch (std::bad_alloc&) {
         return output_t<int>(StatusType::ALLOCATION_ERROR);
     }
@@ -277,6 +297,9 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
 
         NenAbility forcingTotal = forcingRoot->getTotalNen();
         NenAbility forcedTotal = forcedRoot->getTotalNen();
+        
+        int forcingFights = forcingSq->getTotalFights();
+        int forcedFights = forcedSq->getTotalFights();
 
         Squad* winnerSq;
         
@@ -302,16 +325,18 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
         
         // Perform union by size
         if (forcingRoot->getSize() >= forcedRoot->getSize()) {
-            // forcingRoot becomes/stays root
+            // forcingRoot stays root (A stays root)
             forcedRoot->setParent(forcingRoot);
             forcedRoot->setDelta(forcingTotal);
+            forcedRoot->setFightsDelta(forcedFights - forcingFights);  // B hunters: baseFights + (B - A) + A = baseFights + B ✓
             forcingRoot->setSize(forcingRoot->getSize() + forcedRoot->getSize());
             forcingRoot->setTotalNen(forcingTotal + forcedTotal);
             forcingRoot->setSquad(winnerSq);
         } else {
-            // forcedRoot stays root (but represents forcing squad)
+            // forcedRoot stays root (B stays root, takes A's identity)
             forcingRoot->setParent(forcedRoot);
-            forcingRoot->setDelta(-forcedTotal); // Compensate for existing nen
+            forcingRoot->setDelta(-forcedTotal);
+            forcingRoot->setFightsDelta(forcingFights - forcedFights);  // A hunters: baseFights + (A - B) + B = baseFights + A ✓
             forcedRoot->setSize(forcedRoot->getSize() + forcingRoot->getSize());
             forcedRoot->setTotalNen(forcedTotal + forcingTotal);
             forcedRoot->setSquad(winnerSq);  // Update to forcing squad

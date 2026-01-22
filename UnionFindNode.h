@@ -12,6 +12,7 @@ class UFNode {
     NenAbility partialNenAbility; // Cumulative NenAbility from this node to root
     NenAbility delta;            // NenAbility that existed before this hunter (relative to parent)
     NenAbility totalNen;          // Total NenAbility in squad (only meaningful for roots)
+    int fightsDelta;             // Fights that existed when this node joined (for accumulation)
     
     
     public:
@@ -30,11 +31,15 @@ class UFNode {
     void incrementSize();
     NenAbility getPartialNenAbility() const;
     
-    // Delta-based weighted UF
+    
     NenAbility getDelta() const;
     void setDelta(const NenAbility& d);
     NenAbility getTotalNen() const;
     void setTotalNen(const NenAbility& t);
+    
+    // Fight tracking
+    int getFightsDelta() const;
+    void setFightsDelta(int f);
 };
 
 #endif //UNIONFINDNODE_H

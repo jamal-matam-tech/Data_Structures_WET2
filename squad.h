@@ -34,6 +34,7 @@ class Squad{
     UFNode* ufNode;                  
     int squadSize;
     int squadExp;
+    int totalFights;  // Total fights this squad has participated in
     NenAbility totalNenAbility;
     
     public:
@@ -44,6 +45,7 @@ class Squad{
     unsigned int getTotalAura() const;
     int getSquadSize() const;
     int getSquadExp() const;
+    int getTotalFights() const;
     UFNode* getUFNode() const;
     NenAbility getNenAbility() const;
     
@@ -51,7 +53,8 @@ class Squad{
     void removeAura(unsigned int aura);       
     void incrementSize();                     
     void decrementSize();                     
-    void updateExp(int exp);                  
+    void updateExp(int exp);
+    void incrementFights();  // Increment after each duel
     void setUFNode(UFNode* node);
     void addNenAbility(const NenAbility& nen);
     void removeNenAbility(const NenAbility& nen);           
