@@ -21,11 +21,12 @@ private:
         Node* right;
         Node* parent;
         int height;
+        int size;  // subtree size for rank queries
 
         Node(const Key& k, const Value& v)
           : key(k), value(v),
             left(nullptr), right(nullptr), parent(nullptr),
-            height(0) {}
+            height(0), size(1) {}
     };
 
     Node* root;
@@ -49,6 +50,15 @@ private:
     void updateHeight(Node* n) {
       if (!n) return;
         n->height = 1 + max(height(n->left), height(n->right));
+    }
+
+    int getSize(const Node* n) const {
+        return n ? n->size : 0;
+    }
+
+    void updateSize(Node* n) {
+        if (!n) return;
+        n->size = 1 + getSize(n->left) + getSize(n->right);
     }
 
     Node* LL_Rotation(Node* n) {
@@ -76,6 +86,8 @@ private:
       updateHeight(B);
       updateHeight(n);
       updateHeight(temp);
+      updateSize(n);
+      updateSize(temp);
       return temp;
     }
 
@@ -127,6 +139,8 @@ private:
 
       updateHeight(A);
       updateHeight(B);
+      updateSize(A);
+      updateSize(B);
 
       return B;
 
@@ -190,6 +204,7 @@ private:
     if (!n) return n;
 
     updateHeight(n);
+    updateSize(n);
 
       if (balanceFactor(n) > 1) {
         if (balanceFactor(n->left) < 0) {
@@ -269,6 +284,19 @@ private:
 
     }
 
+  // Select the i-th smallest element (1-indexed)
+  Node* select_node(Node* n, int i) const {
+      if (!n) return nullptr;
+      int leftSize = getSize(n->left);
+      if (i == leftSize + 1) {
+        return n;
+      } else if (i <= leftSize) {
+        return select_node(n->left, i);
+      } else {
+        return select_node(n->right, i - leftSize - 1);
+      }
+    }
+
 
 
     public:
@@ -300,6 +328,14 @@ private:
         }
         return &(n->value);
       }
+      
+  // Select the i-th smallest element (1-indexed), returns pointer to value or nullptr
+  Value* select(int i) {
+      if (i <= 0 || i > size) return nullptr;
+      Node* n = select_node(root, i);
+      return n ? &(n->value) : nullptr;
+  }
+  
       int getSize() const{ return size; }
       bool isEmpty() const{return root == nullptr;}
 

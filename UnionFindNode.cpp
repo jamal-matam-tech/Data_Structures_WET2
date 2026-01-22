@@ -15,20 +15,21 @@ UFNode::UFNode(Squad* squadPtr)
 
 UFNode* UFNode::find() {
     if (parent == this) {
-        // Root - delta should be 0
+        // Root - return self
         return this;
     }
     
-    // Store old parent's delta before path compression
+    // Store old parent before path compression
     UFNode* oldParent = parent;
+    
     // Recursively find root and compress path
     UFNode* root = oldParent->find();
-
-
+    
     // Accumulate: add old parent's delta to ours
     // After parent->find(), oldParent's delta is relative to root
     delta = delta + oldParent->delta;
-
+    
+    // Point directly to root
     parent = root;
     return root;
 
@@ -42,6 +43,7 @@ void UFNode::unionSets(UFNode* node1, UFNode* node2) {
         return;
     }
     
+    // Union by size: attach smaller to larger
     if (root1->size < root2->size) {
         root1->parent = root2;
         root2->size += root1->size;
@@ -77,6 +79,10 @@ void UFNode::setSquad(Squad* s) {
 
 void UFNode::incrementSize() {
     size++;
+}
+
+void UFNode::setSize(int s) {
+    size = s;
 }
 
 NenAbility UFNode::getPartialNenAbility() const {

@@ -3,6 +3,29 @@
 
 #include "wet2util.h"
 
+// Key for ordering squads by collective aura
+struct AuraKey {
+    int totalAura;
+    int squadId;
+    
+    AuraKey(int aura, int id) : totalAura(aura), squadId(id) {}
+    
+    bool operator<(const AuraKey& other) const {
+        if (totalAura != other.totalAura) {
+            return totalAura > other.totalAura;  // Higher aura first
+        }
+        return squadId < other.squadId;  // Tie-break by smaller squadId
+    }
+    
+    bool operator>(const AuraKey& other) const {
+        return other < *this;
+    }
+    
+    bool operator==(const AuraKey& other) const {
+        return totalAura == other.totalAura && squadId == other.squadId;
+    }
+};
+
 class UFNode;
 class Squad{
     private:

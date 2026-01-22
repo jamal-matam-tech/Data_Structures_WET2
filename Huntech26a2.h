@@ -15,19 +15,15 @@
 #include "wet2util.h"
 #include "HASH_TABLE.h"
 #include "AVL_TREE.h"
+#include "squad.h"  // Includes AuraKey definition
 #include <memory>
-
 
 class Huntech {
 private:
     
     HashTable hunters;
-    AVLTree<int, std::unique_ptr<Squad>> squads;
-    
-    
-    int* hunterChronology;    
-    int chronologyCount;     
-    int chronologyCapacity;   // check after *******************************************************************
+    AVLTree<int, std::shared_ptr<Squad>> squads;  // Ordered by squadId
+    AVLTree<AuraKey, std::shared_ptr<Squad>> squadsByAura;  // Ordered by collective aura
 
 
 public:

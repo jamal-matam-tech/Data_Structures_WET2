@@ -21,7 +21,9 @@ StatusType Huntech::add_squad(int squadId) {
     }
     
     try {
-        squads.insert(squadId, std::unique_ptr<Squad>(new Squad(squadId)));
+        auto squadPtr = std::make_shared<Squad>(squadId);
+        squads.insert(squadId, squadPtr);
+        squadsByAura.insert(AuraKey(0, squadId), squadPtr);  // Initial aura is 0
     } catch (const std::bad_alloc&) {
         return StatusType::ALLOCATION_ERROR;
     }
@@ -69,6 +71,11 @@ StatusType Huntech::add_hunter(int hunterId,
   hunters.insert(hunterId, hunter);
   
   Squad* squad = squad_ptr->get();
+  
+  // Remove old aura key from squadsByAura
+  AuraKey oldKey(squad->getTotalAura(), squadId);
+  squadsByAura.remove(oldKey);
+  
   hunter->ufNode = std::make_shared<UFNode>(squad);
   
   // Get the root of this squad
@@ -87,6 +94,10 @@ StatusType Huntech::add_hunter(int hunterId,
   squad->incrementSize();
   squad->addAura(aura);
   squad->addNenAbility(nenType);
+  
+  // Insert new aura key into squadsByAura
+  AuraKey newKey(squad->getTotalAura(), squadId);
+  squadsByAura.insert(newKey, *squad_ptr);
    
   } catch(const std::bad_alloc&) { return StatusType::ALLOCATION_ERROR; }
 
@@ -155,8 +166,8 @@ output_t<int> Huntech::get_hunter_fights_number(int hunterId) {
     if (!hunterPtr)
 		return output_t<int>(StatusType::FAILURE);
     try {
-        // do path compression to hold the O(Log*n) amoritized complexity
-        UnionFind::find(hunterPtr->ufNode);
+        // Trigger path compression - O(log* n)
+        hunterPtr->ufNode->find();
 
         return output_t<int>(hunterPtr->fightsHad);
     } catch (std::bad_alloc&) {
@@ -185,70 +196,25 @@ output_t<int> Huntech::get_squad_experience(int squadId) {
     }
 }
 
-// this is incorrect , check
 output_t<int> Huntech::get_ith_collective_aura_squad(int i) {
     if (i <= 0) {
         return output_t<int>(StatusType::INVALID_INPUT);
     }
     
-    int numSquads = squads.getSize();
-    if (numSquads == 0) {
+    int numSquads = squadsByAura.getSize();
+    if (numSquads == 0 || i > numSquads) {
         return output_t<int>(StatusType::FAILURE);
     }
     
     try {
-        struct SquadGroup {
-            UFNode* root;
-            int representativeId;
-            unsigned int collectiveAura;
-        };
-        
-        SquadGroup* groups = new SquadGroup[numSquads];
-        int groupCount = 0;
-        
-        squads.inOrderTraverse([&](int key, std::unique_ptr<Squad>* valPtr) {
-            if (valPtr && *valPtr) {
-                Squad* squad = valPtr->get();
-            UFNode* root = squad->getUFNode()->find();
-            
-            int foundIndex = -1;
-            for (int j = 0; j < groupCount; j++) {
-                if (groups[j].root == root) {
-                    foundIndex = j;
-                    break;
-                }
-            }
-            
-            if (foundIndex == -1) {
-                groups[groupCount].root = root;
-                groups[groupCount].representativeId = root->getSquad()->getSquadId();
-                groups[groupCount].collectiveAura = squad->getTotalAura();
-                groupCount++;
-            } else {
-                groups[foundIndex].collectiveAura += squad->getTotalAura();
-            }
-            }
-        });
-        
-        for (int j = 0; j < groupCount - 1; j++) {
-            for (int k = 0; k < groupCount - j - 1; k++) {
-                if (groups[k].collectiveAura < groups[k + 1].collectiveAura) {
-                    SquadGroup temp = groups[k];
-                    groups[k] = groups[k + 1];
-                    groups[k + 1] = temp;
-                }
-            }
-        }
-        
-        if (i > groupCount) {
-            delete[] groups;
+        // Use select to get the i-th squad in O(log n) time
+        auto squadPtr = squadsByAura.select(i);
+        if (!squadPtr || !*squadPtr) {
             return output_t<int>(StatusType::FAILURE);
         }
         
-        int result = groups[i - 1].representativeId;
-        delete[] groups;
-        
-        return output_t<int>(result);
+        int squadId = (*squadPtr)->getSquadId();
+        return output_t<int>(squadId);
         
     } catch (std::bad_alloc&) {
         return output_t<int>(StatusType::ALLOCATION_ERROR);
@@ -276,7 +242,6 @@ output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
     }
 }
 
-//needs fixing
 StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
     if (forcingSquadId <= 0 || forcedSquadId <= 0 || forcingSquadId == forcedSquadId) {
         return StatusType::INVALID_INPUT;
@@ -291,52 +256,70 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
     Squad* forcing = forcing_ptr->get();
     Squad* forced  = forced_ptr->get();
 
-    UFNode* C = forcing->getUFNode()->find(); // forcing root
-    UFNode* A = forced->getUFNode()->find();  // other root
+    UFNode* forcingRoot = forcing->getUFNode()->find();
+    UFNode* forcedRoot = forced->getUFNode()->find();
 
-    if (C == A) {
+    if (forcingRoot == forcedRoot) {
         return StatusType::FAILURE;
     }
 
     try {
-        Squad* Csq = C->getSquad();
-        Squad* Asq = A->getSquad();
+        Squad* forcingSq = forcingRoot->getSquad();
+        Squad* forcedSq = forcedRoot->getSquad();
 
-        int Ceff = Csq->getSquadExp()
-                 + Csq->getTotalAura()
-                 + Csq->getNenAbility().getEffectiveNenAbility();
+        int forcingEff = forcingSq->getSquadExp()
+                 + forcingSq->getTotalAura()
+                 + forcingSq->getNenAbility().getEffectiveNenAbility();
 
-        int Aeff = Asq->getSquadExp()
-                 + Asq->getTotalAura()
-                 + Asq->getNenAbility().getEffectiveNenAbility();
+        int forcedEff = forcedSq->getSquadExp()
+                 + forcedSq->getTotalAura()
+                 + forcedSq->getNenAbility().getEffectiveNenAbility();
 
-        NenAbility C_total = C->getTotalNen();
-        NenAbility A_total = A->getTotalNen();
+        NenAbility forcingTotal = forcingRoot->getTotalNen();
+        NenAbility forcedTotal = forcedRoot->getTotalNen();
 
-        if (Ceff > Aeff) {
-            // C (forcing) stays root
-            A->setParent(C);
-            A->setDelta(C_total);
-
-            C->setTotalNen(C_total + A_total);
-            C->setSquad(Csq);
+        Squad* winnerSq;
+        
+        // Determine winner
+        if (forcingEff > forcedEff) {
+            // Forcing squad wins
+            winnerSq = forcingSq;
         } else {
-            // A stays root (YOUR SPECIAL CASE)
-            C->setParent(A);
-
-            // compensate so A's hunters don't gain C's nen
-            C->setDelta(-A_total);
-
-            A->setTotalNen(A_total + C_total);
-
-            // IMPORTANT: squad id becomes forcing squad id
-            A->setSquad(Csq);
+            // Forced squad wins (but takes forcing's identity)
+            winnerSq = forcingSq;  // Winner takes forcing squad identity!
         }
-
-        // merge squad stats
-        Csq->addAura(Asq->getTotalAura());
-        Csq->addNenAbility(Asq->getNenAbility());
-        Csq->updateExp(Csq->getSquadExp() + Asq->getSquadExp());
+        
+        // Remove old keys from squadsByAura
+        AuraKey oldForcingKey(forcingSq->getTotalAura(), forcingSq->getSquadId());
+        AuraKey oldForcedKey(forcedSq->getTotalAura(), forcedSq->getSquadId());
+        squadsByAura.remove(oldForcingKey);
+        squadsByAura.remove(oldForcedKey);
+        
+        // Merge squad stats into forcing squad
+        forcingSq->addAura(forcedSq->getTotalAura());
+        forcingSq->addNenAbility(forcedSq->getNenAbility());
+        forcingSq->updateExp(forcingSq->getSquadExp() + forcedSq->getSquadExp());
+        
+        // Perform union by size
+        if (forcingRoot->getSize() >= forcedRoot->getSize()) {
+            // forcingRoot becomes/stays root
+            forcedRoot->setParent(forcingRoot);
+            forcedRoot->setDelta(forcingTotal);
+            forcingRoot->setSize(forcingRoot->getSize() + forcedRoot->getSize());
+            forcingRoot->setTotalNen(forcingTotal + forcedTotal);
+            forcingRoot->setSquad(winnerSq);
+        } else {
+            // forcedRoot stays root (but represents forcing squad)
+            forcingRoot->setParent(forcedRoot);
+            forcingRoot->setDelta(-forcedTotal); // Compensate for existing nen
+            forcedRoot->setSize(forcedRoot->getSize() + forcingRoot->getSize());
+            forcedRoot->setTotalNen(forcedTotal + forcingTotal);
+            forcedRoot->setSquad(winnerSq);  // Update to forcing squad
+        }
+        
+        // Insert new key into squadsByAura
+        AuraKey newKey(forcingSq->getTotalAura(), forcingSq->getSquadId());
+        squadsByAura.insert(newKey, *forcing_ptr);
 
         return StatusType::SUCCESS;
 
