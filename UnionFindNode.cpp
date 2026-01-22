@@ -1,12 +1,11 @@
-
-
 #include "UnionFindNode.h"
 #include "squad.h"
+#include <memory> // for std::shared_ptr
 
-UFNode::UFNode(Squad* squadPtr) 
-    : parent(this),      
-      size(1),           
-      squad(squadPtr),
+UFNode::UFNode(std::shared_ptr<Squad> squadPtr)  // Updated to use shared_ptr
+    : parent(this),
+      size(1),
+      squad(squadPtr),  // squad is now a shared_ptr
       partialNenAbility(NenAbility::zero()),
       delta(NenAbility::zero()),
       totalNen(NenAbility::zero()),
@@ -19,31 +18,30 @@ UFNode* UFNode::find() {
         // Root - return self
         return this;
     }
-    
+
     // Store old parent before path compression
     UFNode* oldParent = parent;
-    
+
     // Recursively find root and compress path
     UFNode* root = oldParent->find();
-    
+
     // Accumulate deltas (both nen and fights)
     delta = delta + oldParent->delta;
     fightsDelta = fightsDelta + oldParent->fightsDelta;
-    
+
     // Point directly to root
     parent = root;
     return root;
-
 }
 
 void UFNode::unionSets(UFNode* node1, UFNode* node2) {
     UFNode* root1 = node1->find();
     UFNode* root2 = node2->find();
-    
+
     if (root1 == root2) {
         return;
     }
-    
+
     // Union by size: attach smaller to larger
     if (root1->size < root2->size) {
         root1->parent = root2;
@@ -54,7 +52,7 @@ void UFNode::unionSets(UFNode* node1, UFNode* node2) {
     }
 }
 
-Squad* UFNode::getSquad() const {
+std::shared_ptr<Squad> UFNode::getSquad() const {  // Return shared_ptr
     return squad;
 }
 
@@ -74,7 +72,7 @@ void UFNode::setParent(UFNode* p) {
     parent = p;
 }
 
-void UFNode::setSquad(Squad* s) {
+void UFNode::setSquad(std::shared_ptr<Squad> s) {  // Set shared_ptr
     squad = s;
 }
 

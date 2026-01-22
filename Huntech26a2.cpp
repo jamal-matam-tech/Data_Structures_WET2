@@ -41,9 +41,7 @@ StatusType Huntech::remove_squad(int squadId) {
         return StatusType::FAILURE;
     }
     
-    if ((*squad_ptr)->getSquadSize() > 0) {
-        return StatusType::FAILURE;
-    }
+
     
     try {
         
@@ -316,7 +314,6 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
         }
          // Remove forced squad from AVL trees since it is now inactive
     	squads.remove(forcedSquadId);  // Remove from squad ID AVL
-    	squadsByAura.remove(AuraKey(forced->getTotalAura(), forcedSquadId));
 
         // Remove both squads from aura ranking
         squadsByAura.remove(AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()));

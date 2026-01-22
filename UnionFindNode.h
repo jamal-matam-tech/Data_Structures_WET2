@@ -8,7 +8,7 @@ class UFNode {
     private:
     UFNode* parent;           
     int size;                 
-    Squad* squad;
+    std::shared_ptr<Squad> squad;
     NenAbility partialNenAbility; // Cumulative NenAbility from this node to root
     NenAbility delta;            // NenAbility that existed before this hunter (relative to parent)
     NenAbility totalNen;          // Total NenAbility in squad (only meaningful for roots)
@@ -17,16 +17,16 @@ class UFNode {
     
     public:
 
-    UFNode(Squad* squadPtr);
+    UFNode(std::shared_ptr<Squad> squadPtr);
     ~UFNode() = default;
     UFNode* find();
     static void unionSets(UFNode* node1, UFNode* node2);
-    Squad* getSquad() const;
+    std::shared_ptr<Squad> getSquad() const;
     int getSize() const;
     UFNode* getParent() const;
     bool isRoot() const;
     void setParent(UFNode* p);
-    void setSquad(Squad* s);
+    void setSquad(std::shared_ptr<Squad> s);
     void setSize(int s);
     void incrementSize();
     NenAbility getPartialNenAbility() const;
