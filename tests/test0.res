@@ -19,7 +19,7 @@ addHunter: FAILURE
 squadDuel: FAILURE
 forceJoin: SUCCESS
 addHunter: SUCCESS
-forceJoin: SUCCESS
+forceJoin: FAILURE
 addSquad: FAILURE
 addHunter: SUCCESS
 removeSquad: FAILURE
@@ -27,33 +27,33 @@ addHunter: SUCCESS
 getIthCollectiveAuraSquad: FAILURE
 addHunter: SUCCESS
 addSquad: FAILURE
-squadDuel: SUCCESS, 3
+squadDuel: SUCCESS, 1
 getIthCollectiveAuraSquad: SUCCESS, 4
 getPartialNenAbility: FAILURE
 addSquad: FAILURE
 addHunter: SUCCESS
-squadDuel: SUCCESS, 8
+squadDuel: SUCCESS, 3
 addSquad: FAILURE
-squadDuel: SUCCESS, 8
+squadDuel: SUCCESS, 3
 addHunter: SUCCESS
 addHunter: SUCCESS
 getIthCollectiveAuraSquad: SUCCESS, 1
 squadDuel: SUCCESS, 3
 getHunterFightsNumber: SUCCESS, 9
 addSquad: FAILURE
-forceJoin: SUCCESS
+forceJoin: FAILURE
 getIthCollectiveAuraSquad: SUCCESS, 4
 getPartialNenAbility: SUCCESS, Enhancer:0, Emitter:0, Transmuter:0, Conjurer:1, Manipulator:0, Specialist:0
 addSquad: FAILURE
 getPartialNenAbility: FAILURE
-forceJoin: FAILURE
+forceJoin: SUCCESS
 addHunter: SUCCESS
 removeSquad: FAILURE
 getPartialNenAbility: SUCCESS, Enhancer:0, Emitter:0, Transmuter:1, Conjurer:0, Manipulator:0, Specialist:0
 addHunter: SUCCESS
-squadDuel: SUCCESS, 8
+squadDuel: SUCCESS, 3
 getIthCollectiveAuraSquad: FAILURE
-squadDuel: SUCCESS, 8
+squadDuel: SUCCESS, 3
 addSquad: FAILURE
 addSquad: FAILURE
 addHunter: SUCCESS
@@ -63,17 +63,17 @@ addHunter: SUCCESS
 addHunter: SUCCESS
 squadDuel: SUCCESS, 1
 getHunterFightsNumber: SUCCESS, 11
-getIthCollectiveAuraSquad: SUCCESS, 9
+getIthCollectiveAuraSquad: SUCCESS, 7
 addSquad: FAILURE
 addSquad: FAILURE
 forceJoin: SUCCESS
 addSquad: SUCCESS
-getIthCollectiveAuraSquad: SUCCESS, 11
+getIthCollectiveAuraSquad: FAILURE
 getIthCollectiveAuraSquad: FAILURE
 addHunter: SUCCESS
 removeSquad: FAILURE
 addSquad: FAILURE
-squadDuel: SUCCESS, 7
+squadDuel: SUCCESS, 3
 squadDuel: FAILURE
 addSquad: FAILURE
 forceJoin: SUCCESS
@@ -94,7 +94,7 @@ addHunter: SUCCESS
 forceJoin: SUCCESS
 removeSquad: FAILURE
 addHunter: SUCCESS
-getIthCollectiveAuraSquad: SUCCESS, 12
+getIthCollectiveAuraSquad: FAILURE
 addHunter: SUCCESS
 addHunter: SUCCESS
 addHunter: SUCCESS
