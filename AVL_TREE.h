@@ -22,8 +22,8 @@ private:
         Node* parent;
         int height;
 
-        Node(const Key& k, Value&& v)
-          : key(k), value(std::move(v)),
+        Node(const Key& k, const Value& v)
+          : key(k), value(v),
             left(nullptr), right(nullptr), parent(nullptr),
             height(0) {}
     };
@@ -157,10 +157,10 @@ private:
       return current;
     }
 
-  Node* insert(Node* n, const Key& key, Value&& info) {
+  Node* insert(Node* n, const Key& key, const Value& info) {
       if (n == nullptr) {
         size++;
-        Node* back= new Node(key, std::move(info));
+        Node* back= new Node(key, info);
         return back;
       }
 
@@ -170,13 +170,13 @@ private:
       Node* Left=n->left;
       Node* Right=n->right;
       if (key < n->key) {
-        Left = insert(Left, key, std::move(info));
+        Left = insert(Left, key, info);
         n->left=Left;
         if (Left!= nullptr){
           Left->parent = n;
         }
       } else {
-        Right = insert(Right, key, std::move(info));
+        Right = insert(Right, key, info);
         n->right=Right;
         if (Right!= nullptr){
           Right->parent = n;
@@ -239,7 +239,7 @@ private:
         else { // both children exist
           Node* successor = minValueNode(n->right);
           n->key = successor->key;
-          n->value = std::move(successor->value);
+          n->value = successor->value;
 
           n->right = remove(n->right, successor->key);
           if (n->right) n->right->parent = n;
@@ -278,8 +278,8 @@ private:
         root = nullptr;
         size = 0;
       }
-      Node* insert(const Key& k, Value&& v) {
-        root = insert(root,k, std::move(v));
+      Node* insert(const Key& k, const Value& v) {
+        root = insert(root,k,v);
         if(root){ root->parent=nullptr ;}
         return root;
       }
@@ -302,7 +302,9 @@ private:
       }
       int getSize() const{ return size; }
       bool isEmpty() const{return root == nullptr;}
-      
+
+
+  // check if needed
       template<typename Func>
       void inOrderTraverse(Func func) {
           inOrderHelper(root, func);

@@ -185,6 +185,7 @@ output_t<int> Huntech::get_squad_experience(int squadId) {
     }
 }
 
+// this is incorrect , check
 output_t<int> Huntech::get_ith_collective_aura_squad(int i) {
     if (i <= 0) {
         return output_t<int>(StatusType::INVALID_INPUT);
@@ -275,6 +276,7 @@ output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
     }
 }
 
+//needs fixing
 StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
     if (forcingSquadId <= 0 || forcedSquadId <= 0) {
         return StatusType::INVALID_INPUT;
