@@ -278,79 +278,68 @@ output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
 
 //needs fixing
 StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
-    if (forcingSquadId <= 0 || forcedSquadId <= 0) {
+    if (forcingSquadId <= 0 || forcedSquadId <= 0 || forcingSquadId == forcedSquadId) {
         return StatusType::INVALID_INPUT;
     }
-    
-    if (forcingSquadId == forcedSquadId) {
-        return StatusType::INVALID_INPUT;
-    }
-    
+
     auto forcing_ptr = squads.find(forcingSquadId);
-    auto forced_ptr = squads.find(forcedSquadId);
-    
-    if (forcing_ptr == nullptr || forced_ptr == nullptr) {
+    auto forced_ptr  = squads.find(forcedSquadId);
+    if (!forcing_ptr || !forced_ptr) {
         return StatusType::FAILURE;
     }
-    
+
     Squad* forcing = forcing_ptr->get();
-    Squad* forced = forced_ptr->get();
-    
-    UFNode* forcingRoot = forcing->getUFNode()->find();
-    UFNode* forcedRoot = forced->getUFNode()->find();
-    
-    if (forcingRoot == forcedRoot) {
+    Squad* forced  = forced_ptr->get();
+
+    UFNode* C = forcing->getUFNode()->find(); // forcing root
+    UFNode* A = forced->getUFNode()->find();  // other root
+
+    if (C == A) {
         return StatusType::FAILURE;
     }
-    
+
     try {
-        Squad* forcingRootSquad = forcingRoot->getSquad();
-        Squad* forcedRootSquad = forcedRoot->getSquad();
-        
-        int forcingEff = forcingRootSquad->getSquadExp() + 
-                         forcingRootSquad->getTotalAura() + 
-                         forcingRootSquad->getNenAbility().getEffectiveNenAbility();
-        
-        int forcedEff = forcedRootSquad->getSquadExp() + 
-                        forcedRootSquad->getTotalAura() + 
-                        forcedRootSquad->getNenAbility().getEffectiveNenAbility();
-        
-        Squad* winner;
-        Squad* loser;
-        
-        if (forcingEff > forcedEff) {
-            winner = forcingRootSquad;
-            loser = forcedRootSquad;
+        Squad* Csq = C->getSquad();
+        Squad* Asq = A->getSquad();
+
+        int Ceff = Csq->getSquadExp()
+                 + Csq->getTotalAura()
+                 + Csq->getNenAbility().getEffectiveNenAbility();
+
+        int Aeff = Asq->getSquadExp()
+                 + Asq->getTotalAura()
+                 + Asq->getNenAbility().getEffectiveNenAbility();
+
+        NenAbility C_total = C->getTotalNen();
+        NenAbility A_total = A->getTotalNen();
+
+        if (Ceff > Aeff) {
+            // C (forcing) stays root
+            A->setParent(C);
+            A->setDelta(C_total);
+
+            C->setTotalNen(C_total + A_total);
+            C->setSquad(Csq);
         } else {
-            winner = forcedRootSquad;
-            loser = forcingRootSquad;
+            // A stays root (YOUR SPECIAL CASE)
+            C->setParent(A);
+
+            // compensate so A's hunters don't gain C's nen
+            C->setDelta(-A_total);
+
+            A->setTotalNen(A_total + C_total);
+
+            // IMPORTANT: squad id becomes forcing squad id
+            A->setSquad(Csq);
         }
-        
-        // Get roots for delta-based UF merge
-        UFNode* winnerRoot = (winner == forcingRootSquad) ? forcingRoot : forcedRoot;
-        UFNode* loserRoot = (loser == forcingRootSquad) ? forcingRoot : forcedRoot;
-        
-        // Delta-based weighted UF merge:
-        // 1. Attach loserRoot under winnerRoot
-        loserRoot->setParent(winnerRoot);
-        
-        // 2. Set loserRoot's delta to winnerRoot's totalNen
-        //    (all of winner's hunters joined before any of loser's hunters)
-        loserRoot->setDelta(winnerRoot->getTotalNen());
-        
-        // 3. Update winnerRoot's totalNen
-        winnerRoot->setTotalNen(winnerRoot->getTotalNen() + loserRoot->getTotalNen());
-        
-        // Update winner squad's properties
-        winner->addAura(loser->getTotalAura());
-        winner->addNenAbility(loser->getNenAbility());
-        winner->updateExp(winner->getSquadExp() + loser->getSquadExp());
-        
-        // Make sure winner root points to winner squad
-        winnerRoot->setSquad(winner);
-        
+
+        // merge squad stats
+        Csq->addAura(Asq->getTotalAura());
+        Csq->addNenAbility(Asq->getNenAbility());
+        Csq->updateExp(Csq->getSquadExp() + Asq->getSquadExp());
+
         return StatusType::SUCCESS;
-        
+
     } catch (std::bad_alloc&) {
         return StatusType::ALLOCATION_ERROR;
     }

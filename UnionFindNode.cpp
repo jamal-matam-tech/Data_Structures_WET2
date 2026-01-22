@@ -21,18 +21,17 @@ UFNode* UFNode::find() {
     
     // Store old parent's delta before path compression
     UFNode* oldParent = parent;
-    NenAbility oldParentDelta = oldParent->delta;
-    
     // Recursively find root and compress path
-    parent = parent->find();
-    
+    UFNode* root = oldParent->find();
+
+
     // Accumulate: add old parent's delta to ours
     // After parent->find(), oldParent's delta is relative to root
-    if (oldParent != parent) {
-        delta += oldParentDelta;
-    }
-    
-    return parent;
+    delta = delta + oldParent->delta;
+
+    parent = root;
+    return root;
+
 }
 
 void UFNode::unionSets(UFNode* node1, UFNode* node2) {

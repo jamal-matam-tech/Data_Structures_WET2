@@ -13,7 +13,7 @@ class Hunter{
   NenAbility nenAbility;
   int aura;
   int fightsHad;
-  int chronologicalIndex; // Index when this hunter was added (for partial nen ability)
+  int chronologicalIndex; // Index when this hunter was added (for partial nen ability) // not needed ******
   std::shared_ptr<UFNode> ufNode; 
 
   Hunter(int hunterId, int squadId, const NenAbility& nenAbility, int aura,
