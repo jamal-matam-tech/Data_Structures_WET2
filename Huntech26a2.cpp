@@ -252,18 +252,17 @@ output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
    if (!hunterPtr)
         return output_t<NenAbility>(StatusType::FAILURE);
 
+    // Trigger path compression - O(log* n)
   UFNode* root = hunterPtr->ufNode->find();
      if (root->getSquad() == nullptr || !root->getSquad()->isActive())
         return output_t<NenAbility>(StatusType::FAILURE);
     
     try {
-        // Trigger path compression - O(log* n)
-        hunterPtr->ufNode->find();
         
         // result = this hunter's own NenAbility + delta (NenAbility before this hunter) + the root
         // because in the path compression it doesnt sum the delta of the root and store it in the hunter, which after find
         // will be the parent of the huneter(path compression)
-        NenAbility result = hunterPtr->nenAbility + hunterPtr->ufNode->getDelta() + hunterPtr->ufNode->getParent()->getDelta();
+        NenAbility result = hunterPtr->nenAbility + hunterPtr->ufNode->getDelta();
         
         return output_t<NenAbility>(result);
         
@@ -272,7 +271,7 @@ output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
     }
 }
 
-StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
+/*StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
     if (forcingSquadId <= 0 || forcedSquadId <= 0 || forcingSquadId == forcedSquadId) {
         return StatusType::INVALID_INPUT;
     }
@@ -330,11 +329,12 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
         if (forcingRoot->getSize() >= forcedRoot->getSize()) {
             // forcingRoot stays root
             forcedRoot->setParent(forcingRoot);
-            // forced hunters are new → gain forcing's totalnen
-            forcedRoot->setDelta(forcedRoot->getDelta() +forcingTotalNen);
-            forcedRoot->setFightsDelta(forcedRoot->getFightsDelta() - forcingFights);
+            forcedRoot->setDelta(forcingTotalNen);
+            forcedRoot->setFightsDelta(forcedFights - forcingFights);
 
             forcingRoot->setSize(forcingRoot->getSize() + forcedRoot->getSize());
+            forcingRoot->setTotalNen(forcingTotalNen + forcedTotalNen);
+            forcingRoot->setSquad(forcingSq);
 
             // Mark forced squad as inactive
         forcedSq->setActive(false);
@@ -343,7 +343,7 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
             forcingSq->addAura(forcedSq->getTotalAura());
             forcingSq->addNenAbility(forcedSq->getNenAbility());
             forcingSq->updateExp(forcingSq->getSquadExp() + forcedSq->getSquadExp());
-        } else {
+        } *//*else {
             // forcedRoot stays root
             forcingRoot->setParent(forcedRoot);
             forcedRoot->setDelta(forcedRoot->getDelta()+forcingTotalNen);
@@ -358,8 +358,8 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
             forced->setSquadId(forcing->getSquadId()); // identity stays forcing
             forcing->setUFNode(forced->getUFNode());
         }// not fixing the squad'id when uniting to the bigger (in the else case),
-        // there are mistakes in the nenabiilitydelta in the else case, read dry part.
-
+        // there are mistakes in the nenabiilitydelta in the else case, read dry part.*/
+/*
 
         // Insert forcing squad back
         squadsByAura.insert(
@@ -372,5 +372,106 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
     } catch (std::bad_alloc&) {
         return StatusType::ALLOCATION_ERROR;
     }
-}
+}*/
+StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
+    if (forcingSquadId <= 0 || forcedSquadId <= 0 || forcingSquadId == forcedSquadId) {
+        return StatusType::INVALID_INPUT;
+    }
 
+    auto forcing_ptr = squads.find(forcingSquadId);
+    auto forced_ptr  = squads.find(forcedSquadId);
+    if (!forcing_ptr || !forced_ptr) {
+        return StatusType::FAILURE;
+    }
+
+    Squad* forcing = forcing_ptr->get();
+    Squad* forced  = forced_ptr->get();
+
+    UFNode* forcingRoot = forcing->getUFNode()->find();
+    UFNode* forcedRoot  = forced->getUFNode()->find();
+
+    if (forcingRoot == forcedRoot) {
+        return StatusType::FAILURE;
+    }
+
+    try {
+        auto forcingSq = forcingRoot->getSquad();
+        auto forcedSq  = forcedRoot->getSquad();
+
+        int forcingEff =
+            forcingSq->getSquadExp() +
+            forcingSq->getTotalAura() +
+            forcingSq->getNenAbility().getEffectiveNenAbility();
+
+        int forcedEff =
+            forcedSq->getSquadExp() +
+            forcedSq->getTotalAura() +
+            forcedSq->getNenAbility().getEffectiveNenAbility();
+
+        //
+        if (forcingEff <= forcedEff) {
+            return StatusType::FAILURE;
+        }
+
+
+
+         // Remove forced squad from AVL trees
+    	squads.remove(forcedSquadId);
+
+        // Remove both squads from aura ranking
+        squadsByAura.remove(AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()));
+        squadsByAura.remove(AuraKey(forcedSq->getTotalAura(),  forcedSq->getSquadId()));
+
+        NenAbility forcingTotalNen = forcingRoot->getTotalNen();
+        NenAbility forcedTotalNen  = forcedRoot->getTotalNen();
+
+        int forcingFights = forcingSq->getTotalFights();
+        int forcedFights  = forcedSq->getTotalFights();
+
+        // Union by size (STAYS)
+        if (forcingRoot->getSize() >= forcedRoot->getSize()) {
+        // Always attach forced to forcing to maintain "Forcing then Forced" order
+        forcedRoot->setParent(forcingRoot);
+        forcedRoot->setDelta(forcingTotalNen);
+        forcedRoot->setFightsDelta(forcedFights - forcingFights);
+
+        forcingRoot->setSize(forcingRoot->getSize() + forcedRoot->getSize());
+        forcingRoot->setTotalNen(forcingTotalNen + forcedTotalNen);
+        forcingRoot->setSquad(forcingSq);
+
+//
+
+
+        // Merge squad stats INTO forcing squad
+        forcingSq->addAura(forcedSq->getTotalAura());
+        forcingSq->addNenAbility(forcedSq->getNenAbility());
+        forcingSq->updateExp(
+            forcingSq->getSquadExp() + forcedSq->getSquadExp()
+        );
+        }else{
+            forcingRoot->setParent(forcedRoot);
+            forcedRoot->setDelta(forcingTotalNen);
+            forcingRoot->setDelta(-forcedRoot->getDelta());
+            forcingRoot->setFightsDelta(forcingFights - forcedFights);
+
+            forcedRoot->setSize(forcingRoot->getSize() + forcedRoot->getSize());
+            forcedRoot->setTotalNen(forcingTotalNen + forcedTotalNen);
+
+            forcedSq->addAura(forcedSq->getTotalAura());
+            forcedSq->addNenAbility(forcedSq->getNenAbility());
+            forcedSq->updateExp(forcingSq->getSquadExp() + forcedSq->getSquadExp());
+            forced->setSquadId(forcing->getSquadId()); // identity stays forcing
+            forcing->setUFNode(forced->getUFNode());
+        }
+        // Insert forcing squad back
+        squadsByAura.insert(
+            AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()),
+            *forcing_ptr
+        );
+
+        return StatusType::SUCCESS;
+
+    } catch (std::bad_alloc&) {
+        return StatusType::ALLOCATION_ERROR;
+    }
+}

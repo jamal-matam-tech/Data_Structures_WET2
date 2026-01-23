@@ -15,7 +15,7 @@ UFNode::UFNode(std::shared_ptr<Squad> squadPtr)  // Updated to use shared_ptr
 
 //check
 UFNode* UFNode::find() {
-    if (parent == this) {
+   /* if (parent == this) {
         return this;
     }
 
@@ -33,6 +33,38 @@ UFNode* UFNode::find() {
 
     // Point directly to root
     parent = root;
+    return root;*/
+    if (parent == this) return this;
+
+    UFNode* curr = this;
+    NenAbility sumNen = NenAbility::zero();
+    int sumF = 0;
+
+    // Pass 1: find root and calculate total sums along the path (EXCLUDING the root)
+    while (curr->parent != curr) {
+        sumNen += curr->delta;
+        sumF += curr->fightsDelta;
+        curr = curr->parent;
+    }
+    UFNode* root = curr;
+
+    // Pass 2: path compression and delta updates
+    curr = this;
+    while (curr != root) {
+        NenAbility oldDelta = curr->delta;
+        int oldF = curr->fightsDelta;
+
+        curr->delta = sumNen;
+        curr->fightsDelta = sumF;
+
+        sumNen -= oldDelta;
+        sumF -= oldF;
+
+        UFNode* next = curr->parent;
+        curr->parent = root;
+        curr = next;
+    }
+
     return root;
 }
 
