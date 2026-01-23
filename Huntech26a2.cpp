@@ -429,7 +429,7 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
         int forcedFights  = forcedSq->getTotalFights();
 
         // Union by size (STAYS)
-        if (forcingRoot->getSize() >= forcedRoot->getSize()) {
+       // if (forcingRoot->getSize() >= forcedRoot->getSize()) {
         // Always attach forced to forcing to maintain "Forcing then Forced" order
         forcedRoot->setParent(forcingRoot);
         forcedRoot->setDelta(forcingTotalNen);
@@ -448,7 +448,8 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
         forcingSq->updateExp(
             forcingSq->getSquadExp() + forcedSq->getSquadExp()
         );
-        }else{
+     //   }
+        /*else{
             forcingRoot->setParent(forcedRoot);
             forcedRoot->setDelta(forcingTotalNen);
             forcingRoot->setDelta(-forcedRoot->getDelta());
@@ -462,7 +463,7 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
             forcedSq->updateExp(forcingSq->getSquadExp() + forcedSq->getSquadExp());
             forced->setSquadId(forcing->getSquadId()); // identity stays forcing
             forcing->setUFNode(forced->getUFNode());
-        }
+        }*/
         // Insert forcing squad back
         squadsByAura.insert(
             AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()),

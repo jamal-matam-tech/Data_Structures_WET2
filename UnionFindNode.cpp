@@ -2,7 +2,7 @@
 #include "squad.h"
 #include <memory> // for std::shared_ptr
 
-UFNode::UFNode(std::shared_ptr<Squad> squadPtr)  // Updated to use shared_ptr
+UFNode::UFNode(const std::shared_ptr<Squad>&  squadPtr)  // Updated to use shared_ptr
     : parent(this),
       size(1),
       squad(squadPtr),  // squad is now a shared_ptr
@@ -106,7 +106,7 @@ void UFNode::setParent(UFNode* p) {
     parent = p;
 }
 
-void UFNode::setSquad(std::shared_ptr<Squad> s) {  // Set shared_ptr
+void UFNode::setSquad(const std::shared_ptr<Squad>&  s) {  // Set shared_ptr
     squad = s;
 }
 

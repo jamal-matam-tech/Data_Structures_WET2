@@ -779,7 +779,7 @@ squadDuel: FAILURE
 getHunterFightsNumber: SUCCESS, 7
 forceJoin: FAILURE
 removeSquad: FAILURE
-getPartialNenAbility: SUCCESS, Invalid NenAbility
+getPartialNenAbility: SUCCESS, Enhancer:0, Emitter:1, Transmuter:0, Conjurer:0, Manipulator:1, Specialist:0
 addHunter: SUCCESS
 addSquad: SUCCESS
 addHunter: SUCCESS

@@ -784,7 +784,7 @@ forceJoin: FAILURE
 forceJoin: FAILURE
 getPartialNenAbility: FAILURE
 squadDuel: FAILURE
-getPartialNenAbility: SUCCESS, Enhancer:1, Emitter:0, Transmuter:0, Conjurer:0, Manipulator:0, Specialist:0
+getPartialNenAbility: FAILURE
 squadDuel: FAILURE
 getPartialNenAbility: FAILURE
 getHunterFightsNumber: FAILURE
@@ -792,7 +792,7 @@ addSquad: INVALID_INPUT
 forceJoin: FAILURE
 squadDuel: FAILURE
 forceJoin: FAILURE
-getPartialNenAbility: SUCCESS, Enhancer:1, Emitter:0, Transmuter:0, Conjurer:0, Manipulator:0, Specialist:0
+getPartialNenAbility: FAILURE
 getHunterFightsNumber: SUCCESS, 9
 getHunterFightsNumber: FAILURE
 squadDuel: SUCCESS, 3

@@ -19,7 +19,7 @@ class UFNode {
     
     public:
 
-    UFNode(std::shared_ptr<Squad> squadPtr);
+    UFNode(const std::shared_ptr<Squad>& squadPtr);
     ~UFNode() = default;
     UFNode* find();
     static void unionSets(UFNode* node1, UFNode* node2);
@@ -28,7 +28,7 @@ class UFNode {
     UFNode* getParent() const;
     bool isRoot() const;
     void setParent(UFNode* p);
-    void setSquad(std::shared_ptr<Squad> s);
+    void setSquad(const std::shared_ptr<Squad>&  s);
     void setSize(int s);
     void incrementSize();
     NenAbility getPartialNenAbility() const;
