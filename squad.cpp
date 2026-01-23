@@ -11,16 +11,12 @@ Squad::Squad(int id)
       squadSize(0),
       squadExp(0),
       totalFights(0),
-      totalNenAbility(NenAbility::zero())
+      totalNenAbility(NenAbility::zero()),
+      active(true)
 {
-    ufNode = new UFNode(this);
 }
 
 Squad::~Squad() {
-    if (ufNode != nullptr) {
-        delete ufNode;
-        ufNode = nullptr;
-    }
 }
 
 int Squad::getSquadId() const {
@@ -89,4 +85,16 @@ void Squad::addNenAbility(const NenAbility& nen) {
 
 void Squad::removeNenAbility(const NenAbility& nen) {
     totalNenAbility -= nen;
+}
+
+bool Squad::isActive() const {
+    return active;
+}
+
+void Squad::setActive(bool active) {
+    this->active = active;
+}
+
+void Squad::setSquadId(int squadId) {
+    this->squadId = squadId;
 }

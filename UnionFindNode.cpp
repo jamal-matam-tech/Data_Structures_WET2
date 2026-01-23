@@ -13,9 +13,9 @@ UFNode::UFNode(std::shared_ptr<Squad> squadPtr)  // Updated to use shared_ptr
 {
 }
 
+//check
 UFNode* UFNode::find() {
     if (parent == this) {
-        // Root - return self
         return this;
     }
 
@@ -26,7 +26,9 @@ UFNode* UFNode::find() {
     UFNode* root = oldParent->find();
 
     // Accumulate deltas (both nen and fights)
-    delta = delta + oldParent->delta;
+    if (oldParent->parent != oldParent) {
+        delta += oldParent->delta;
+    }
     fightsDelta = fightsDelta + oldParent->fightsDelta;
 
     // Point directly to root

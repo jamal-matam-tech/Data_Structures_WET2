@@ -1,7 +1,9 @@
 #ifndef UNIONFINDNODE_H
 #define UNIONFINDNODE_H
 
+
 #include "wet2util.h"
+#include <memory>
 
 class Squad;
 class UFNode {

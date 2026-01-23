@@ -12,7 +12,7 @@ struct AuraKey {
     
     bool operator<(const AuraKey& other) const {
         if (totalAura != other.totalAura) {
-            return totalAura > other.totalAura;  // Higher aura first
+            return totalAura < other.totalAura;
         }
         return squadId < other.squadId;  // Tie-break by smaller squadId
     }
@@ -36,6 +36,7 @@ class Squad{
     int squadExp;
     int totalFights;  // Total fights this squad has participated in
     NenAbility totalNenAbility;
+    bool active;
     
     public:
     Squad(int id);
@@ -48,6 +49,7 @@ class Squad{
     int getTotalFights() const;
     UFNode* getUFNode() const;
     NenAbility getNenAbility() const;
+    bool isActive() const;
     
     void addAura(unsigned int aura);          
     void removeAura(unsigned int aura);       
@@ -57,7 +59,9 @@ class Squad{
     void incrementFights();  // Increment after each duel
     void setUFNode(UFNode* node);
     void addNenAbility(const NenAbility& nen);
-    void removeNenAbility(const NenAbility& nen);           
+    void removeNenAbility(const NenAbility& nen);
+    void setActive(bool active);
+    void setSquadId(int squadId);
 };
 
 
