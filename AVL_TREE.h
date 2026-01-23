@@ -328,32 +328,19 @@ private:
         }
         return &(n->value);
       }
-      
+
   // Select the i-th smallest element (1-indexed), returns pointer to value or nullptr
   Value* select(int i) {
       if (i <= 0 || i > size) return nullptr;
       Node* n = select_node(root, i);
       return n ? &(n->value) : nullptr;
   }
-  
+
       int getSize() const{ return size; }
       bool isEmpty() const{return root == nullptr;}
 
 
-  // check if needed
-      template<typename Func>
-      void inOrderTraverse(Func func) {
-          inOrderHelper(root, func);
-      }
 
-private:
-      template<typename Func>
-      void inOrderHelper(Node* node, Func func) {
-          if (!node) return;
-          inOrderHelper(node->left, func);
-          func(node->key, &node->value);
-          inOrderHelper(node->right, func);
-      }
 
 };
 

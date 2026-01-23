@@ -11,10 +11,10 @@ class UFNode {
     UFNode* parent;           
     int size;                 
     std::shared_ptr<Squad> squad;
-    NenAbility partialNenAbility; // Cumulative NenAbility from this node to root
-    NenAbility delta;            // NenAbility that existed before this hunter (relative to parent)
-    NenAbility totalNen;          // Total NenAbility in squad (only meaningful for roots)
-    int fightsDelta;             // Fights that existed when this node joined (for accumulation)
+    NenAbility partialNenAbility;
+    NenAbility delta;
+    NenAbility totalNen;
+    int fightsDelta;
     
     
     public:

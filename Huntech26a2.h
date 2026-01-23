@@ -22,8 +22,8 @@ class Huntech {
 private:
     
     HashTable hunters;
-    AVLTree<int, std::shared_ptr<Squad>> squads;  // Ordered by squadId
-    AVLTree<AuraKey, std::shared_ptr<Squad>> squadsByAura;  // Ordered by collective aura
+    AVLTree<int, std::shared_ptr<Squad>> squads;
+    AVLTree<AuraKey, std::shared_ptr<Squad>> squadsByAura;
 
 
 public:

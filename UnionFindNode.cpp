@@ -2,10 +2,10 @@
 #include "squad.h"
 #include <memory> // for std::shared_ptr
 
-UFNode::UFNode(const std::shared_ptr<Squad>&  squadPtr)  // Updated to use shared_ptr
+UFNode::UFNode(const std::shared_ptr<Squad>&  squadPtr)
     : parent(this),
       size(1),
-      squad(squadPtr),  // squad is now a shared_ptr
+      squad(squadPtr),
       partialNenAbility(NenAbility::zero()),
       delta(NenAbility::zero()),
       totalNen(NenAbility::zero()),
@@ -40,7 +40,6 @@ UFNode* UFNode::find() {
     NenAbility sumNen = NenAbility::zero();
     int sumF = 0;
 
-    // Pass 1: find root and calculate total sums along the path (EXCLUDING the root)
     while (curr->parent != curr) {
         sumNen += curr->delta;
         sumF += curr->fightsDelta;
@@ -48,7 +47,6 @@ UFNode* UFNode::find() {
     }
     UFNode* root = curr;
 
-    // Pass 2: path compression and delta updates
     curr = this;
     while (curr != root) {
         NenAbility oldDelta = curr->delta;
@@ -76,7 +74,7 @@ void UFNode::unionSets(UFNode* node1, UFNode* node2) {
         return;
     }
 
-    // Union by size: attach smaller to larger
+
     if (root1->size < root2->size) {
         root1->parent = root2;
         root2->size += root1->size;
@@ -86,7 +84,7 @@ void UFNode::unionSets(UFNode* node1, UFNode* node2) {
     }
 }
 
-std::shared_ptr<Squad> UFNode::getSquad() const {  // Return shared_ptr
+std::shared_ptr<Squad> UFNode::getSquad() const {
     return squad;
 }
 
@@ -106,7 +104,7 @@ void UFNode::setParent(UFNode* p) {
     parent = p;
 }
 
-void UFNode::setSquad(const std::shared_ptr<Squad>&  s) {  // Set shared_ptr
+void UFNode::setSquad(const std::shared_ptr<Squad>&  s) {
     squad = s;
 }
 
