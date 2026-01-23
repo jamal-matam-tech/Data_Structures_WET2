@@ -347,6 +347,7 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
             // forcedRoot stays root
             forcingRoot->setParent(forcedRoot);
             forcedRoot->setDelta(forcedRoot->getDelta()+forcingTotalNen);
+            forcingRoot->setDelta(forcingRoot->getDelta()-forcedRoot->getDelta());
             forcingRoot->setFightsDelta(forcingFights - forcedFights);
 
             forcedRoot->setSize(forcedRoot->getSize() + forcingRoot->getSize());
