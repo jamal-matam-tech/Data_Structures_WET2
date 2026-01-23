@@ -133,8 +133,8 @@ output_t<int> Huntech::squad_duel(int squadId1, int squadId2) {
         int effectiveness1 = squad1->getSquadExp() + squad1->getTotalAura();
         int effectiveness2 = squad2->getSquadExp() + squad2->getTotalAura();
         
-        UFNode* root1 = squad1->getUFNode()->find();
-        UFNode* root2 = squad2->getUFNode()->find();
+        UFNode* root1 = squad1->getUFNode();
+        UFNode* root2 = squad2->getUFNode();
 
         // Increment fights for both squads regardless of outcome
         root1->getSquad()->incrementFights();
