@@ -344,7 +344,8 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
             forcedRoot->setSize(forcedRoot->getSize() + forcingRoot->getSize());
             forcedRoot->setTotalNen(forcedTotalNen + forcingTotalNen);
             forcedRoot->setSquad(forcingSq); // identity stays forcing
-        }
+        }// not fixing the squad'id when uniting to the bigger (in the else case),
+        // there are mistakes in the nenabiilitydelta in the else case, read dry part.
 
         // Merge squad stats INTO forcing squad
         forcingSq->addAura(forcedSq->getTotalAura());
