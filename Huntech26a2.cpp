@@ -85,16 +85,21 @@ hunter->ufNode = std::make_shared<UFNode>(*squad_ptr);
   UFNode* squadRoot = squad->getUFNode()->find();
   
 
-  hunter->ufNode.get()->setDelta(squadRoot->getTotalNen());
+  // Adjust for possible root offsets (see force_join union-by-size)
+  NenAbility rootOffset = squadRoot->getDelta();
+  int rootFightsOffset = squadRoot->getFightsDelta();
+
+  hunter->ufNode.get()->setDelta(squadRoot->getTotalNen() - rootOffset);
   
 
-  hunter->ufNode.get()->setFightsDelta(-(squadRoot->getSquad()->getTotalFights()));
+  hunter->ufNode.get()->setFightsDelta(-(squadRoot->getSquad()->getTotalFights() + rootFightsOffset));
   
 
   hunter->ufNode.get()->setParent(squadRoot);
   
 
   squadRoot->setTotalNen(squadRoot->getTotalNen() + nenType);
+  squadRoot->incrementSize();
   
 
   squad->incrementSize();
@@ -190,6 +195,7 @@ output_t<int> Huntech::get_hunter_fights_number(int hunterId) {
 
         int totalFights = hunterPtr->fightsHad + 
                          hunterPtr->ufNode->getFightsDelta() + 
+                         root->getFightsDelta() +
                          root->getSquad()->getTotalFights();
         
         return output_t<int>(totalFights);
@@ -261,7 +267,7 @@ output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
         // result = this hunter's own NenAbility + delta (NenAbility before this hunter) + the root
         // because in the path compression it doesnt sum the delta of the root and store it in the hunter, which after find
         // will be the parent of the huneter(path compression)
-        NenAbility result = hunterPtr->nenAbility + hunterPtr->ufNode->getDelta();
+        NenAbility result = hunterPtr->nenAbility + hunterPtr->ufNode->getDelta() + root->getDelta();
         
         return output_t<NenAbility>(result);
         
@@ -431,17 +437,49 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
         NenAbility forcingTotalNen = forcingRoot->getTotalNen();
         NenAbility forcedTotalNen  = forcedRoot->getTotalNen();
 
+        NenAbility forcingOffsetNen = forcingRoot->getDelta();
+        NenAbility forcedOffsetNen  = forcedRoot->getDelta();
+
         int forcingFights = forcingSq->getTotalFights();
         int forcedFights  = forcedSq->getTotalFights();
 
+        int forcingOffsetF = forcingRoot->getFightsDelta();
+        int forcedOffsetF  = forcedRoot->getFightsDelta();
 
-        forcedRoot->setParent(forcingRoot);
-        forcedRoot->setDelta(forcingTotalNen);
-        forcedRoot->setFightsDelta(forcedFights - forcingFights);
+        // Union by size (larger root stays)
+        UFNode* root = nullptr;
+        UFNode* child = nullptr;
+        bool rootIsForcing = (forcingRoot->getSize() >= forcedRoot->getSize());
+        if (rootIsForcing) {
+            root = forcingRoot;
+            child = forcedRoot;
+        } else {
+            root = forcedRoot;
+            child = forcingRoot;
+        }
 
-        forcingRoot->setSize(forcingRoot->getSize() + forcedRoot->getSize());
-        forcingRoot->setTotalNen(forcingTotalNen + forcedTotalNen);
-        forcingRoot->setSquad(forcingSq);
+        // Apply offsets to keep partial nen and fights correct (forcing squad identity wins)
+        if (rootIsForcing) {
+            // root is forcingRoot, keep its offsets as-is
+            child->setParent(root);
+            child->setDelta(forcedOffsetNen + forcingTotalNen - forcingOffsetNen);
+            child->setFightsDelta(forcedOffsetF + forcedFights - forcingOffsetF - forcingFights);
+        } else {
+            // root is forcedRoot, shift its offsets to account for forcing squad identity
+            NenAbility newRootOffsetNen = forcedOffsetNen + forcingTotalNen;
+            int newRootOffsetF = forcedOffsetF + forcedFights - forcingFights;
+
+            root->setDelta(newRootOffsetNen);
+            root->setFightsDelta(newRootOffsetF);
+
+            child->setParent(root);
+            child->setDelta(forcingOffsetNen - newRootOffsetNen);
+            child->setFightsDelta(forcingOffsetF - newRootOffsetF);
+        }
+
+        root->setSize(forcingRoot->getSize() + forcedRoot->getSize());
+        root->setTotalNen(forcingTotalNen + forcedTotalNen);
+        root->setSquad(forcing_shared);
 
 
 
@@ -452,6 +490,9 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
             forcingSq->getSquadExp() + forcedSq->getSquadExp()
         );
 
+
+        // Mark forced squad inactive
+        forcedSq->setActive(false);
 
         squadsByAura.insert(
             AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()),
