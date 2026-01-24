@@ -281,8 +281,12 @@ output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
         return StatusType::FAILURE;
     }
 
-    Squad* forcing = forcing_ptr->get();
-    Squad* forced  = forced_ptr->get();
+    // Copy shared_ptr values before any tree mutations to avoid dangling pointers
+    std::shared_ptr<Squad> forcing_shared = *forcing_ptr;
+    std::shared_ptr<Squad> forced_shared  = *forced_ptr;
+
+    Squad* forcing = forcing_shared.get();
+    Squad* forced  = forced_shared.get();
 
     UFNode* forcingRoot = forcing->getUFNode()->find();
     UFNode* forcedRoot  = forced->getUFNode()->find();
@@ -312,7 +316,7 @@ output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
 
 
          // Remove forced squad from AVL trees
-    	squads.remove(forcedSquadId);
+        squads.remove(forcedSquadId);
 
         // Remove both squads from aura ranking
         squadsByAura.remove(AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()));
@@ -363,7 +367,7 @@ output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
         // Insert forcing squad back
         squadsByAura.insert(
             AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()),
-            *forcing_ptr
+            forcing_shared
         );
 
         return StatusType::SUCCESS;
@@ -383,8 +387,12 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
         return StatusType::FAILURE;
     }
 
-    Squad* forcing = forcing_ptr->get();
-    Squad* forced  = forced_ptr->get();
+    // Copy shared_ptr values before mutating the AVL tree to avoid dangling pointers
+    std::shared_ptr<Squad> forcing_shared = *forcing_ptr;
+    std::shared_ptr<Squad> forced_shared  = *forced_ptr;
+
+    Squad* forcing = forcing_shared.get();
+    Squad* forced  = forced_shared.get();
 
     UFNode* forcingRoot = forcing->getUFNode()->find();
     UFNode* forcedRoot  = forced->getUFNode()->find();
@@ -415,7 +423,7 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
 
 
 
-    	squads.remove(forcedSquadId);
+        squads.remove(forcedSquadId);
 
         squadsByAura.remove(AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()));
         squadsByAura.remove(AuraKey(forcedSq->getTotalAura(),  forcedSq->getSquadId()));
@@ -447,7 +455,7 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
 
         squadsByAura.insert(
             AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()),
-            *forcing_ptr
+            forcing_shared
         );
 
         return StatusType::SUCCESS;
