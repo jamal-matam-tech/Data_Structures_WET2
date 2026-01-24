@@ -17,6 +17,8 @@ Squad::Squad(int id)
 }
 
 Squad::~Squad() {
+    delete ufNode;
+    ufNode = nullptr;
 }
 
 int Squad::getSquadId() const {

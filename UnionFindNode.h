@@ -10,7 +10,7 @@ class UFNode {
     private:
     UFNode* parent;           
     int size;                 
-    std::shared_ptr<Squad> squad;
+    Squad* squad;
     NenAbility partialNenAbility;
     NenAbility delta;
     NenAbility totalNen;
@@ -23,7 +23,7 @@ class UFNode {
     ~UFNode() = default;
     UFNode* find();
     static void unionSets(UFNode* node1, UFNode* node2);
-    std::shared_ptr<Squad> getSquad() const;
+    Squad* getSquad() const;
     int getSize() const;
     UFNode* getParent() const;
     bool isRoot() const;

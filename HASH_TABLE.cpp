@@ -11,6 +11,13 @@ HashTable::HashTable(int initialDividor)
 
 
 HashTable::~HashTable() {
+    for (int i = 0; i < dividor; i++) {
+        auto curr = table[i];
+        while (curr != nullptr) {
+            delete curr->value;
+            curr = curr->next;
+        }
+    }
     delete[] table;
 }
 
@@ -57,6 +64,7 @@ bool HashTable::remove(int key) {
 
     while (curr != nullptr) {
         if (curr->key == key) {
+            delete curr->value;
             if (prev == nullptr)
                 table[idx] = curr->next; // sharedptr deletes it self
             else

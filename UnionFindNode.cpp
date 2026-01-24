@@ -5,7 +5,7 @@
 UFNode::UFNode(const std::shared_ptr<Squad>&  squadPtr)
     : parent(this),
       size(1),
-      squad(squadPtr),
+      squad(squadPtr.get()),
       partialNenAbility(NenAbility::zero()),
       delta(NenAbility::zero()),
       totalNen(NenAbility::zero()),
@@ -84,7 +84,7 @@ void UFNode::unionSets(UFNode* node1, UFNode* node2) {
     }
 }
 
-std::shared_ptr<Squad> UFNode::getSquad() const {
+Squad* UFNode::getSquad() const {
     return squad;
 }
 
@@ -105,7 +105,7 @@ void UFNode::setParent(UFNode* p) {
 }
 
 void UFNode::setSquad(const std::shared_ptr<Squad>&  s) {
-    squad = s;
+    squad = s.get();
 }
 
 void UFNode::incrementSize() {

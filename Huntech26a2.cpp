@@ -22,7 +22,7 @@ StatusType Huntech::add_squad(int squadId) {
     
     try {
         auto squadPtr = std::make_shared<Squad>(squadId);
-        squadPtr->setUFNode(new UFNode(squadPtr));  // Create UFNode with shared_ptr
+        squadPtr->setUFNode(new UFNode(squadPtr));  // Create UFNode with squad reference
         squads.insert(squadId, squadPtr);
         squadsByAura.insert(AuraKey(0, squadId), squadPtr);  
     } catch (const std::bad_alloc&) {
@@ -71,6 +71,7 @@ StatusType Huntech::add_hunter(int hunterId,
     return StatusType::FAILURE;
   try{
   Hunter* hunter = new Hunter(hunterId, squadId, nenType, aura, fightsHad);
+  hunter->squadPtr = *squad_ptr;
   hunters.insert(hunterId, hunter);
   
   Squad* squad = squad_ptr->get();
