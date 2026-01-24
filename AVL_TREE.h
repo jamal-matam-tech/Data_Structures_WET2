@@ -284,7 +284,7 @@ private:
 
     }
 
-  // Select the i-th smallest element (1-indexed)
+  // select the i-th smallest element (1-indexed)
   Node* select_node(Node* n, int i) const {
       if (!n) return nullptr;
       int leftSize = getSize(n->left);
@@ -329,7 +329,7 @@ private:
         return &(n->value);
       }
 
-  // Select the i-th smallest element (1-indexed), returns pointer to value or nullptr
+  // select the i-th smallest element (1-indexed), returns pointer to value or nullptr
   Value* select(int i) {
       if (i <= 0 || i > size) return nullptr;
       Node* n = select_node(root, i);

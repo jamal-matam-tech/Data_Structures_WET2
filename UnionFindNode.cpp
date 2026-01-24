@@ -13,27 +13,9 @@ UFNode::UFNode(const std::shared_ptr<Squad>&  squadPtr)
 {
 }
 
-//check
+//check later
 UFNode* UFNode::find() {
-   /* if (parent == this) {
-        return this;
-    }
 
-    // Store old parent before path compression
-    UFNode* oldParent = parent;
-
-    // Recursively find root and compress path
-    UFNode* root = oldParent->find();
-
-    // Accumulate deltas (both nen and fights)
-    if (oldParent->parent != oldParent) {
-        delta += oldParent->delta;
-    }
-    fightsDelta = fightsDelta + oldParent->fightsDelta;
-
-    // Point directly to root
-    parent = root;
-    return root;*/
     if (parent == this) return this;
 
     UFNode* curr = this;

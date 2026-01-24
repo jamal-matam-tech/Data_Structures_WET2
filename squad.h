@@ -3,7 +3,7 @@
 
 #include "wet2util.h"
 
-// Key for ordering squads by collective aura
+// key for ordering squads by collective aura
 struct AuraKey {
     int totalAura;
     int squadId;
@@ -14,7 +14,7 @@ struct AuraKey {
         if (totalAura != other.totalAura) {
             return totalAura < other.totalAura;
         }
-        return squadId < other.squadId;  // Tie-break by smaller squadId
+        return squadId < other.squadId;  // tie-break by smaller squadId
     }
     
     bool operator>(const AuraKey& other) const {
@@ -34,7 +34,7 @@ class Squad{
     UFNode* ufNode;                  
     int squadSize;
     int squadExp;
-    int totalFights;  // Total fights this squad has participated in
+    int totalFights;
     NenAbility totalNenAbility;
     bool active;
     
@@ -56,7 +56,7 @@ class Squad{
     void incrementSize();                     
     void decrementSize();                     
     void updateExp(int exp);
-    void incrementFights();  // Increment after each duel
+    void incrementFights();
     void setUFNode(UFNode* node);
     void addNenAbility(const NenAbility& nen);
     void removeNenAbility(const NenAbility& nen);

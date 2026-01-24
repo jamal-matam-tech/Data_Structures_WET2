@@ -22,7 +22,7 @@ StatusType Huntech::add_squad(int squadId) {
     
     try {
         auto squadPtr = std::make_shared<Squad>(squadId);
-        squadPtr->setUFNode(new UFNode(squadPtr));  // Create UFNode with squad reference
+        squadPtr->setUFNode(new UFNode(squadPtr));
         squads.insert(squadId, squadPtr);
         squadsByAura.insert(AuraKey(0, squadId), squadPtr);  
     } catch (const std::bad_alloc&) {
@@ -45,7 +45,7 @@ StatusType Huntech::remove_squad(int squadId) {
 
     
     try {
-         // Mark as inactive
+         // make as inactive
         (*squad_ptr)->setActive(false);
         AuraKey auraKey((*squad_ptr)->getTotalAura(), squadId);
         squadsByAura.remove(auraKey);
@@ -86,7 +86,7 @@ hunter->ufNode = std::make_shared<UFNode>(*squad_ptr);
   UFNode* squadRoot = squad->getUFNode()->find();
   
 
-  // Adjust for possible root offsets (see force_join union-by-size)
+  // adjust for possible root offsets (because in force join we unite to the bigger)
   NenAbility rootOffset = squadRoot->getDelta();
   int rootFightsOffset = squadRoot->getFightsDelta();
 
@@ -277,112 +277,7 @@ output_t<NenAbility> Huntech::get_partial_nen_ability(int hunterId) {
     }
 }
 
-/*StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
-    if (forcingSquadId <= 0 || forcedSquadId <= 0 || forcingSquadId == forcedSquadId) {
-        return StatusType::INVALID_INPUT;
-    }
 
-    auto forcing_ptr = squads.find(forcingSquadId);
-    auto forced_ptr  = squads.find(forcedSquadId);
-    if (!forcing_ptr || !forced_ptr) {
-        return StatusType::FAILURE;
-    }
-
-    // Copy shared_ptr values before any tree mutations to avoid dangling pointers
-    std::shared_ptr<Squad> forcing_shared = *forcing_ptr;
-    std::shared_ptr<Squad> forced_shared  = *forced_ptr;
-
-    Squad* forcing = forcing_shared.get();
-    Squad* forced  = forced_shared.get();
-
-    UFNode* forcingRoot = forcing->getUFNode()->find();
-    UFNode* forcedRoot  = forced->getUFNode()->find();
-
-    if (forcingRoot == forcedRoot) {
-        return StatusType::FAILURE;
-    }
-
-    try {
-        auto forcingSq = forcingRoot->getSquad();
-        auto forcedSq  = forcedRoot->getSquad();
-
-        int forcingEff =
-            forcingSq->getSquadExp() +
-            forcingSq->getTotalAura() +
-            forcingSq->getNenAbility().getEffectiveNenAbility();
-
-        int forcedEff =
-            forcedSq->getSquadExp() +
-            forcedSq->getTotalAura() +
-            forcedSq->getNenAbility().getEffectiveNenAbility();
-
-        // forcing must win
-        if (forcingEff <= forcedEff) {
-            return StatusType::FAILURE;
-        }
-
-
-         // Remove forced squad from AVL trees
-        squads.remove(forcedSquadId);
-
-        // Remove both squads from aura ranking
-        squadsByAura.remove(AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()));
-        squadsByAura.remove(AuraKey(forcedSq->getTotalAura(),  forcedSq->getSquadId()));
-
-        NenAbility forcingTotalNen = forcingRoot->getTotalNen();
-        NenAbility forcedTotalNen  = forcedRoot->getTotalNen();
-
-        int forcingFights = forcingSq->getTotalFights();
-        int forcedFights  = forcedSq->getTotalFights();
-
-        // Union by size (STAYS)
-        if (forcingRoot->getSize() >= forcedRoot->getSize()) {
-            // forcingRoot stays root
-            forcedRoot->setParent(forcingRoot);
-            forcedRoot->setDelta(forcingTotalNen);
-            forcedRoot->setFightsDelta(forcedFights - forcingFights);
-
-            forcingRoot->setSize(forcingRoot->getSize() + forcedRoot->getSize());
-            forcingRoot->setTotalNen(forcingTotalNen + forcedTotalNen);
-            forcingRoot->setSquad(forcingSq);
-
-            // Mark forced squad as inactive
-        forcedSq->setActive(false);
-
-            // Merge squad stats INTO forcing squad
-            forcingSq->addAura(forcedSq->getTotalAura());
-            forcingSq->addNenAbility(forcedSq->getNenAbility());
-            forcingSq->updateExp(forcingSq->getSquadExp() + forcedSq->getSquadExp());
-        } *//*else {
-            // forcedRoot stays root
-            forcingRoot->setParent(forcedRoot);
-            forcedRoot->setDelta(forcedRoot->getDelta()+forcingTotalNen);
-            forcingRoot->setDelta(forcingRoot->getDelta()-forcedRoot->getDelta());
-            forcingRoot->setFightsDelta(forcingFights - forcedFights);
-
-            forcedRoot->setSize(forcedRoot->getSize() + forcingRoot->getSize());
-            // Merge squad stats INTO forcing squad
-            forcingSq->addAura(forcedSq->getTotalAura());
-            forcingSq->addNenAbility(forcedSq->getNenAbility());
-            forcingSq->updateExp(forcingSq->getSquadExp() + forcedSq->getSquadExp());
-            forced->setSquadId(forcing->getSquadId()); // identity stays forcing
-            forcing->setUFNode(forced->getUFNode());
-        }// not fixing the squad'id when uniting to the bigger (in the else case),
-        // there are mistakes in the nenabiilitydelta in the else case, read dry part.*/
-/*
-
-        // Insert forcing squad back
-        squadsByAura.insert(
-            AuraKey(forcingSq->getTotalAura(), forcingSq->getSquadId()),
-            forcing_shared
-        );
-
-        return StatusType::SUCCESS;
-
-    } catch (std::bad_alloc&) {
-        return StatusType::ALLOCATION_ERROR;
-    }
-}*/
 StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
     if (forcingSquadId <= 0 || forcedSquadId <= 0 || forcingSquadId == forcedSquadId) {
         return StatusType::INVALID_INPUT;
@@ -394,7 +289,7 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
         return StatusType::FAILURE;
     }
 
-    // Copy shared_ptr values before mutating the AVL tree to avoid dangling pointers
+
     std::shared_ptr<Squad> forcing_shared = *forcing_ptr;
     std::shared_ptr<Squad> forced_shared  = *forced_ptr;
 
@@ -447,7 +342,7 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
         int forcingOffsetF = forcingRoot->getFightsDelta();
         int forcedOffsetF  = forcedRoot->getFightsDelta();
 
-        // Union by size (larger root stays)
+        // unite to the bigger
         UFNode* root = nullptr;
         UFNode* child = nullptr;
         bool rootIsForcing = (forcingRoot->getSize() >= forcedRoot->getSize());
@@ -459,14 +354,14 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
             child = forcingRoot;
         }
 
-        // Apply offsets to keep partial nen and fights correct (forcing squad identity wins)
+        // apply deltas to make sure getpartialnenability and gethunterfightsnum correct
         if (rootIsForcing) {
-            // root is forcingRoot, keep its offsets as-is
+            // root is forcingRoot, the deltas isnt effected
             child->setParent(root);
             child->setDelta(forcedOffsetNen + forcingTotalNen - forcingOffsetNen);
             child->setFightsDelta(forcedOffsetF + forcedFights - forcingOffsetF - forcingFights);
         } else {
-            // root is forcedRoot, shift its offsets to account for forcing squad identity
+            // root is forcedRoot, we need to make sure deltas account for forcing squad deltas
             NenAbility newRootOffsetNen = forcedOffsetNen + forcingTotalNen;
             int newRootOffsetF = forcedOffsetF + forcedFights - forcingFights;
 
@@ -492,7 +387,7 @@ StatusType Huntech::force_join(int forcingSquadId, int forcedSquadId) {
         );
 
 
-        // Mark forced squad inactive
+        // make forced squad inactive
         forcedSq->setActive(false);
 
         squadsByAura.insert(
